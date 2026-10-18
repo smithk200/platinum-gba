@@ -589,6 +589,8 @@ gStdScripts_End::
 	.include "data/maps/OreburghCityNorth/scripts.inc"
 	.include "data/maps/OreburghCitySouth/scripts.inc"
 	.include "data/maps/FloaromaTown/scripts.inc"
+	.include "data/maps/EternaCityNorth/scripts.inc"
+	.include "data/maps/EternaCitySouth/scripts.inc"
 	.include "data/maps/Route201/scripts.inc"
 	.include "data/maps/Route202/scripts.inc"
 	.include "data/maps/Route203/scripts.inc"
@@ -598,17 +600,20 @@ gStdScripts_End::
 	.include "data/maps/Route205South1/scripts.inc"
 	.include "data/maps/Route205South2/scripts.inc"
 	.include "data/maps/Route207/scripts.inc"
+	.include "data/maps/Route211West/scripts.inc"
 	.include "data/maps/Route219/scripts.inc"
 	.include "data/maps/OreburghGate/scripts.inc"
 	.include "data/maps/OreburghMine_B1F/scripts.inc"
 	.include "data/maps/OreburghMine_B2F/scripts.inc"
 	.include "data/maps/RavagedPath/scripts.inc"
+	.include "data/maps/MtCoronet_N1F1/scripts.inc"
 	.include "data/maps/LakefrontVerity/scripts.inc"
 	.include "data/maps/LakeVerity/scripts.inc"
 	.include "data/maps/Gate_Jubilife/scripts.inc"
 	.include "data/maps/ValleyWindworks/scripts.inc"
 	.include "data/maps/FloaromaMeadow/scripts.inc"
-	.include "data/maps/EternaForest/scripts.inc"
+	.include "data/maps/EternaForest1/scripts.inc"
+	.include "data/maps/EternaForest2/scripts.inc"
 	.include "data/maps/EternaForestOuter1/scripts.inc"
 	.include "data/maps/EternaForestOuter2/scripts.inc"
 	.include "data/maps/TwinleafTown_PlayersHouse_1F/scripts.inc"
@@ -653,6 +658,15 @@ gStdScripts_End::
 	.include "data/maps/FloaromaTown_PokemonCenter_2F/scripts.inc"
 	.include "data/maps/FloaromaTown_Mart/scripts.inc"
 	.include "data/maps/FloaromaMeadow_House/scripts.inc"
+	.include "data/maps/EternaCity_TowerA_1F/scripts.inc"
+	.include "data/maps/EternaCity_TowerA_2F/scripts.inc"
+	.include "data/maps/EternaCity_TowerA_3F/scripts.inc"
+	.include "data/maps/EternaCity_HouseA/scripts.inc"
+	.include "data/maps/EternaCity_HouseB/scripts.inc"
+	.include "data/maps/EternaCity_Gym/scripts.inc"
+	.include "data/maps/EternaCity_PokemonCenter_1F/scripts.inc"
+	.include "data/maps/EternaCity_PokemonCenter_2F/scripts.inc"
+	.include "data/maps/EternaCity_Mart/scripts.inc"
 	.include "data/maps/ValleyWindworksIndoor/scripts.inc"
 	.include "data/maps/Route205South1_House/scripts.inc"
 	.include "data/scripts/std_msgbox.inc"
@@ -776,6 +790,14 @@ Common_EventScript_ShowPokemartSign::
 
 Common_EventScript_ShowPokemonCenterSign::
 	msgbox gText_PokemonCenterSign, MSGBOX_SIGN
+	end
+
+Common_EventScript_PokemonCenter_Underground::
+	msgbox gText_WeAreWorkingUnderground, MSGBOX_NPC
+	end
+
+Common_EventScript_ThisBuildingIsClosed::
+	msgbox gText_ThisBuildingIsClosed, MSGBOX_NPC
 	end
 
 Common_ShowEasyChatScreen::
@@ -968,6 +990,17 @@ gText_PokemartSign::
 gText_PokemonCenterSign::
 	.string "Heal Your Pokémon!\n"
 	.string "Pokémon Center$"
+
+gText_WeAreWorkingUnderground::
+	.string "I'm very sorry.\p"
+	.string "We are working underground right now.\n"
+	.string "It's off-limits to the public.\p"
+	.string "Please try later on.$"
+	
+gText_ThisBuildingIsClosed::
+	.string "This building is closed for\n"
+	.string "maintenance.\p"
+	.string "Please come back later.$"
 
 gText_MomOrDadMightLikeThisProgram::
 	.string "{STR_VAR_1} might like this program.\n"

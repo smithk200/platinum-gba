@@ -72,10 +72,10 @@ porytiles compile-primary -Wall -o ./data/tilesets/primary/gym_oreburgh ./tiles/
 echo "Compiling [secondary] oreburgh_gym"
 porytiles compile-secondary -Wall -o ./data/tilesets/secondary/oreburgh_gym ./tiles/oreburgh_gym ./tiles/gym_oreburgh ./include/constants/metatile_behaviors.h
 
-echo "Compiling [PRIMARY] cave_coronet"
-porytiles compile-primary -Wall -o ./data/tilesets/primary/cave_coronet ./tiles/cave_coronet ./include/constants/metatile_behaviors.h
+echo "Compiling [PRIMARY] cave_coronet_south"
+porytiles compile-primary -Wall -o ./data/tilesets/primary/cave_coronet_south ./tiles/cave_coronet_south ./include/constants/metatile_behaviors.h
 echo "Compiling [secondary] ravaged_path"
-porytiles compile-secondary -Wall -o ./data/tilesets/secondary/ravaged_path ./tiles/ravaged_path ./tiles/cave_coronet ./include/constants/metatile_behaviors.h
+porytiles compile-secondary -Wall -o ./data/tilesets/secondary/ravaged_path ./tiles/ravaged_path ./tiles/cave_coronet_south ./include/constants/metatile_behaviors.h
 
 echo "Compiling [PRIMARY] cave_oreburgh"
 porytiles compile-primary -Wall -o ./data/tilesets/primary/cave_oreburgh ./tiles/cave_oreburgh ./include/constants/metatile_behaviors.h
@@ -113,10 +113,18 @@ porytiles compile-primary -Wall -o ./data/tilesets/primary/indoor_windworks ./ti
 echo "Compiling [secondary] valley_windworks_indoor"
 porytiles compile-secondary -Wall -o ./data/tilesets/secondary/valley_windworks_indoor ./tiles/valley_windworks_indoor ./tiles/indoor_windworks ./include/constants/metatile_behaviors.h
 
-echo "Compiling [PRIMARY] indoor_forest"
-porytiles compile-primary -Wall -o ./data/tilesets/primary/indoor_forest ./tiles/indoor_forest ./include/constants/metatile_behaviors.h
+# SKIP indoor_forest, as it uses triple-layer metatile config that porytiles does not support
+# echo "Compiling [PRIMARY] indoor_forest"
+# porytiles compile-primary -Wall -o ./data/tilesets/primary/indoor_forest ./tiles/indoor_forest ./include/constants/metatile_behaviors.h
 
 echo "Compiling [PRIMARY] outdoor_eterna"
-porytiles compile-primary -Wall -o ./data/tilesets/primary/outdoor_eterna ./tiles/outdoor_eterna ./include/constants/metatile_behaviors.h
+porytiles compile-primary -tiles-primary-override=384 -Wall -o ./data/tilesets/primary/outdoor_eterna ./tiles/outdoor_eterna ./include/constants/metatile_behaviors.h
+echo "Compiling [secondary] eterna_north"
+porytiles compile-secondary -tiles-primary-override=384 -Wall -o ./data/tilesets/secondary/eterna_north ./tiles/eterna_north ./tiles/outdoor_eterna ./include/constants/metatile_behaviors.h
+echo "Compiling [secondary] eterna_south"
+porytiles compile-secondary -tiles-primary-override=384 -Wall -o ./data/tilesets/secondary/eterna_south ./tiles/eterna_south ./tiles/outdoor_eterna ./include/constants/metatile_behaviors.h
 echo "Compiling [secondary] route_205_north"
-porytiles compile-secondary -Wall -o ./data/tilesets/secondary/route_205_north ./tiles/route_205_north ./tiles/outdoor_eterna ./include/constants/metatile_behaviors.h
+porytiles compile-secondary -tiles-primary-override=384 -Wall -o ./data/tilesets/secondary/route_205_north ./tiles/route_205_north ./tiles/outdoor_eterna ./include/constants/metatile_behaviors.h
+# SKIP route_211_west, as it uses custom tile indices to align with map connection
+# echo "Compiling [secondary] route_211_west"
+# porytiles compile-secondary -tiles-primary-override=384 -Wall -o ./data/tilesets/secondary/route_211_west ./tiles/route_211_west ./tiles/outdoor_eterna ./include/constants/metatile_behaviors.h

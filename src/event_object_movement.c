@@ -172,6 +172,7 @@ static void VirtualObject_UpdateAnim(struct Sprite *);
 static void ApplyLevitateMovement(u8);
 static bool8 MovementType_Disguise_Callback(struct ObjectEvent *, struct Sprite *);
 static bool8 MovementType_Buried_Callback(struct ObjectEvent *, struct Sprite *);
+static bool8 MovementType_BuriedPt_Callback(struct ObjectEvent *, struct Sprite *);
 static bool8 MovementType_WindTurbineBlades_Callback(struct ObjectEvent *, struct Sprite *);
 static void CreateReflectionEffectSprites(void);
 static u8 GetObjectEventIdByLocalIdAndMapInternal(u8, u8, u8);
@@ -350,6 +351,7 @@ static void (*const sMovementTypeCallbacks[])(struct Sprite *) =
     [MOVEMENT_TYPE_WALK_SLOWLY_IN_PLACE_RIGHT] = MovementType_WalkSlowlyInPlace,
     [MOVEMENT_TYPE_FOLLOW_PLAYER] = MovementType_FollowPlayer,
     [MOVEMENT_TYPE_WIND_TURBINE_BLADES] = MovementType_WindTurbineBlades,
+    [MOVEMENT_TYPE_BURIED_PT] = MovementType_BuriedPt,
 };
 
 static const bool8 sMovementTypeHasRange[NUM_MOVEMENT_TYPES] = {
@@ -480,6 +482,7 @@ const u8 gInitialMovementTypeFacingDirections[NUM_MOVEMENT_TYPES] = {
     [MOVEMENT_TYPE_WALK_SLOWLY_IN_PLACE_RIGHT] = DIR_EAST,
     [MOVEMENT_TYPE_FOLLOW_PLAYER] = DIR_SOUTH,
     [MOVEMENT_TYPE_WIND_TURBINE_BLADES] = DIR_SOUTH,
+    [MOVEMENT_TYPE_BURIED_PT] = DIR_SOUTH,
 };
 
 #include "data/object_events/object_event_graphics_info_pointers.h"
@@ -513,7 +516,6 @@ static const struct SpritePalette sObjectEventSpritePalettes[] = {
     {gObjectEventPal_MayReflection,         OBJ_EVENT_PAL_TAG_MAY_REFLECTION},
     {gObjectEventPal_MovingBox,             OBJ_EVENT_PAL_TAG_MOVING_BOX},
     {gObjectEventPal_CableCar,              OBJ_EVENT_PAL_TAG_CABLE_CAR},
-    {gObjectEventPal_WindTurbine,           OBJ_EVENT_PAL_TAG_WIND_TURBINE},
     {gObjectEventPal_SSTidal,               OBJ_EVENT_PAL_TAG_SSTIDAL},
     {gObjectEventPal_Kyogre,                OBJ_EVENT_PAL_TAG_KYOGRE},
     {gObjectEventPal_KyogreReflection,      OBJ_EVENT_PAL_TAG_KYOGRE_REFLECTION},
@@ -644,7 +646,14 @@ static const struct SpritePalette sObjectEventSpritePalettes[] = {
     {gObjectEventPal_WorkerPt,              OBJ_EVENT_PAL_TAG_WORKER_PT},
     {gObjectEventPal_YoungsterPt,           OBJ_EVENT_PAL_TAG_YOUNGSTER_PT},
     {gObjectEventPal_BriefcasePt,           OBJ_EVENT_PAL_TAG_BRIEFCASE_PT},
-    {gObjectEventPal_RockPt,                OBJ_EVENT_PAL_TAG_ROCK_PT},
+    {gObjectEventPal_BreakableRockPt,       OBJ_EVENT_PAL_TAG_BREAKABLE_ROCK_PT},
+    {gObjectEventPal_CuttableTreePt,        OBJ_EVENT_PAL_TAG_CUTTABLE_TREE_PT},
+    {gObjectEventPal_PushableBoulderPt,     OBJ_EVENT_PAL_TAG_PUSHABLE_BOULDER_PT},
+    {gObjectEventPal_WindTurbine,           OBJ_EVENT_PAL_TAG_WIND_TURBINE},
+    {gObjectEventPal_BuriedTrainerBrownPt,  OBJ_EVENT_PAL_TAG_BURIED_TRAINER_BROWN_PT},
+    {gObjectEventPal_BuriedTrainerGreenPt,  OBJ_EVENT_PAL_TAG_BURIED_TRAINER_GREEN_PT},
+    {gObjectEventPal_BuriedTrainerGrayPt,   OBJ_EVENT_PAL_TAG_BURIED_TRAINER_GRAY_PT},
+    {gObjectEventPal_BuriedTrainerWhitePt,  OBJ_EVENT_PAL_TAG_BURIED_TRAINER_WHITE_PT},
 
 
 #if OW_FOLLOWERS_POKEBALLS
@@ -6052,6 +6061,37 @@ static bool8 MovementType_Buried_Callback(struct ObjectEvent *objectEvent, struc
     return gMovementTypeFuncs_Buried[sprite->sTypeFuncId](objectEvent, sprite);
 }
 
+// Like MovementType_Buried, but the trainer is hidden by a mound object instead of being
+// covered by a tile. The object's template graphics are the revealed trainer.
+void MovementType_BuriedPt(struct Sprite *sprite)
+{
+    struct ObjectEvent *objectEvent = &gObjectEvents[sprite->sObjEventId];
+
+    if (!sprite->data[7])
+    {
+        ObjectEventSetGraphicsId(objectEvent, OBJ_EVENT_GFX_BURIED_TRAINER_BROWN_PT);
+        sprite->data[7]++;
+    }
+    UpdateObjectEventCurrentMovement(objectEvent, sprite, MovementType_BuriedPt_Callback);
+}
+
+static bool8 MovementType_BuriedPt_Callback(struct ObjectEvent *objectEvent, struct Sprite *sprite)
+{
+    return gMovementTypeFuncs_BuriedPt[sprite->sTypeFuncId](objectEvent, sprite);
+}
+
+// Replaces the mound with the trainer's own graphics
+void RevealBuriedPtTrainerGraphics(struct ObjectEvent *objectEvent)
+{
+    struct ObjectEventTemplate *template = GetBaseTemplateForObjectEvent(objectEvent);
+
+    if (template == NULL)
+        return;
+    ObjectEventSetGraphicsId(objectEvent, template->graphicsId);
+    // The mound is inanimate, so restart the facing animation for the trainer sprite
+    ObjectEventTurn(objectEvent, objectEvent->facingDirection);
+}
+
 void MovementType_WindTurbineBlades(struct Sprite *sprite)
 {
     if (!sprite->data[7])
@@ -6070,6 +6110,12 @@ static bool8 MovementType_WindTurbineBlades_Callback(struct ObjectEvent *objectE
 }
 
 bool8 MovementType_Buried_Step0(struct ObjectEvent *objectEvent, struct Sprite *sprite)
+{
+    ClearObjectEventMovement(objectEvent, sprite);
+    return FALSE;
+}
+
+bool8 MovementType_BuriedPt_Step0(struct ObjectEvent *objectEvent, struct Sprite *sprite)
 {
     ClearObjectEventMovement(objectEvent, sprite);
     return FALSE;
@@ -8719,7 +8765,7 @@ bool8 MovementAction_EmoteHeart_Step0(struct ObjectEvent *objectEvent, struct Sp
 
 bool8 MovementAction_RevealTrainer_Step0(struct ObjectEvent *objectEvent, struct Sprite *sprite)
 {
-    if (objectEvent->movementType == MOVEMENT_TYPE_BURIED)
+    if (objectEvent->movementType == MOVEMENT_TYPE_BURIED || objectEvent->movementType == MOVEMENT_TYPE_BURIED_PT)
     {
         SetBuriedTrainerMovement(objectEvent);
         return FALSE;
@@ -9982,12 +10028,14 @@ static const u8 sElevationToSubpriority[] = {
     115, 115, 83, 115, 83, 115, 83, 115, 83, 115, 83, 115, 83, 0, 0, 115
 };
 
-static const u8 sElevationToPriority[] = {
-    2, 2, 2, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 0, 2
+static const u8 sElevationToPriority[2][16] = {
+    {2, 2, 2, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 0, 2},   // Map without Overlay
+    {2, 3, 3, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 0, 2}    // Map with Overlay
 };
 
-static const u8 sElevationToSubspriteTableNum[] = {
-    1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 0, 0, 1,
+static const u8 sElevationToSubspriteTableNum[2][16] = {
+    {1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 0, 0, 1},   // Map without Overlay
+    {1, 0, 4, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 0, 0, 1}    // Map with Overlay
 };
 
 static void UpdateObjectEventElevationAndPriority(struct ObjectEvent *objEvent, struct Sprite *sprite)
@@ -10007,19 +10055,19 @@ static void UpdateObjectEventElevationAndPriority(struct ObjectEvent *objEvent, 
             objEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
     }
 
-    sprite->subspriteTableNum = sElevationToSubspriteTableNum[objEvent->previousElevation];
-    sprite->oam.priority = sElevationToPriority[objEvent->previousElevation];
+    sprite->subspriteTableNum = sElevationToSubspriteTableNum[gMapHeader.overlay != NULL][objEvent->previousElevation];
+    sprite->oam.priority = sElevationToPriority[gMapHeader.overlay != NULL][objEvent->previousElevation];
 }
 
 static void InitObjectPriorityByElevation(struct Sprite *sprite, u8 elevation)
 {
-    sprite->subspriteTableNum = sElevationToSubspriteTableNum[elevation];
-    sprite->oam.priority = sElevationToPriority[elevation];
+    sprite->subspriteTableNum = sElevationToSubspriteTableNum[gMapHeader.overlay != NULL][elevation];
+    sprite->oam.priority = sElevationToPriority[gMapHeader.overlay != NULL][elevation];
 }
 
 u8 ElevationToPriority(u8 elevation)
 {
-    return sElevationToPriority[elevation];
+    return sElevationToPriority[gMapHeader.overlay != NULL][elevation];
 }
 
 // Returns current elevation, or 15 for bridges
@@ -10081,7 +10129,7 @@ void GroundEffect_SpawnOnTallGrass(struct ObjectEvent *objEvent, struct Sprite *
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
     gFieldEffectArguments[1] = objEvent->currentCoords.y;
     gFieldEffectArguments[2] = objEvent->previousElevation;
-    gFieldEffectArguments[3] = 2; // priority
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2; // priority
     gFieldEffectArguments[4] = objEvent->localId << 8 | objEvent->mapNum;
     gFieldEffectArguments[5] = objEvent->mapGroup;
     gFieldEffectArguments[6] = (u8)gSaveBlock1Ptr->location.mapNum << 8 | (u8)gSaveBlock1Ptr->location.mapGroup;
@@ -10094,7 +10142,7 @@ void GroundEffect_StepOnTallGrass(struct ObjectEvent *objEvent, struct Sprite *s
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
     gFieldEffectArguments[1] = objEvent->currentCoords.y;
     gFieldEffectArguments[2] = objEvent->previousElevation;
-    gFieldEffectArguments[3] = 2; // priority
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2; // priority
     gFieldEffectArguments[4] = objEvent->localId << 8 | objEvent->mapNum;
     gFieldEffectArguments[5] = objEvent->mapGroup;
     gFieldEffectArguments[6] = (u8)gSaveBlock1Ptr->location.mapNum << 8 | (u8)gSaveBlock1Ptr->location.mapGroup;
@@ -10107,7 +10155,7 @@ void GroundEffect_SpawnOnLongGrass(struct ObjectEvent *objEvent, struct Sprite *
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
     gFieldEffectArguments[1] = objEvent->currentCoords.y;
     gFieldEffectArguments[2] = objEvent->previousElevation;
-    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
     gFieldEffectArguments[4] = objEvent->localId << 8 | objEvent->mapNum;
     gFieldEffectArguments[5] = objEvent->mapGroup;
     gFieldEffectArguments[6] = (u8)gSaveBlock1Ptr->location.mapNum << 8 | (u8)gSaveBlock1Ptr->location.mapGroup;
@@ -10120,7 +10168,7 @@ void GroundEffect_StepOnLongGrass(struct ObjectEvent *objEvent, struct Sprite *s
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
     gFieldEffectArguments[1] = objEvent->currentCoords.y;
     gFieldEffectArguments[2] = objEvent->previousElevation;
-    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
     gFieldEffectArguments[4] = (objEvent->localId << 8) | objEvent->mapNum;
     gFieldEffectArguments[5] = objEvent->mapGroup;
     gFieldEffectArguments[6] = (u8)gSaveBlock1Ptr->location.mapNum << 8 | (u8)gSaveBlock1Ptr->location.mapGroup;
@@ -10179,7 +10227,7 @@ static void DoTracksGroundEffect_Footprints(struct ObjectEvent *objEvent, struct
     gFieldEffectArguments[0] = objEvent->previousCoords.x;
     gFieldEffectArguments[1] = objEvent->previousCoords.y;
     gFieldEffectArguments[2] = 149;
-    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
     gFieldEffectArguments[4] = objEvent->facingDirection;
     FieldEffectStart(sandFootprints_FieldEffectData[isDeepSand]);
 }
@@ -10195,7 +10243,7 @@ static void DoTracksGroundEffect_FootprintsB(struct ObjectEvent *objEvent, struc
     gFieldEffectArguments[0] = objEvent->previousCoords.x;
     gFieldEffectArguments[1] = objEvent->previousCoords.y;
     gFieldEffectArguments[2] = 149;
-    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
     gFieldEffectArguments[4] = objEvent->facingDirection;
     gFieldEffectArguments[5] = objEvent->previousMetatileBehavior;
     FieldEffectStart(otherFootprintsA_FieldEffectData[isDeepSand]);
@@ -10212,7 +10260,7 @@ static void DoTracksGroundEffect_FootprintsC(struct ObjectEvent *objEvent, struc
     gFieldEffectArguments[0] = objEvent->previousCoords.x;
     gFieldEffectArguments[1] = objEvent->previousCoords.y;
     gFieldEffectArguments[2] = 149;
-    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
     gFieldEffectArguments[4] = objEvent->facingDirection;
     gFieldEffectArguments[5] = objEvent->previousMetatileBehavior;
     FieldEffectStart(otherFootprintsB_FieldEffectData[isDeepSand]);
@@ -10239,7 +10287,7 @@ static void DoTracksGroundEffect_BikeTireTracks(struct ObjectEvent *objEvent, st
         gFieldEffectArguments[0] = objEvent->previousCoords.x;
         gFieldEffectArguments[1] = objEvent->previousCoords.y;
         gFieldEffectArguments[2] = 149;
-        gFieldEffectArguments[3] = 2;
+        gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
         gFieldEffectArguments[4] =
         bikeTireTracks_Transitions[movementDir][objEvent->facingDirection - 5];
         FieldEffectStart(FLDEFF_BIKE_TIRE_TRACKS);
@@ -10266,7 +10314,7 @@ static void DoTracksGroundEffect_SlitherTracks(struct ObjectEvent *objEvent, str
         gFieldEffectArguments[0] = objEvent->previousCoords.x;
         gFieldEffectArguments[1] = objEvent->previousCoords.y;
         gFieldEffectArguments[2] = 149;
-        gFieldEffectArguments[3] = 2;
+        gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
         gFieldEffectArguments[4] =
         slitherTracks_Transitions[objEvent->previousMovementDirection][objEvent->facingDirection - 5];
         gFieldEffectArguments[5] = objEvent->previousMetatileBehavior;
@@ -10296,7 +10344,7 @@ void GroundEffect_JumpOnTallGrass(struct ObjectEvent *objEvent, struct Sprite *s
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
     gFieldEffectArguments[1] = objEvent->currentCoords.y;
     gFieldEffectArguments[2] = objEvent->previousElevation;
-    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
     FieldEffectStart(FLDEFF_JUMP_TALL_GRASS);
 
     spriteId = FindTallGrassFieldEffectSpriteId(
@@ -10315,7 +10363,7 @@ void GroundEffect_JumpOnLongGrass(struct ObjectEvent *objEvent, struct Sprite *s
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
     gFieldEffectArguments[1] = objEvent->currentCoords.y;
     gFieldEffectArguments[2] = objEvent->previousElevation;
-    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[3] = (gMapHeader.overlay != NULL) ? sprite->oam.priority : 2;
     FieldEffectStart(FLDEFF_JUMP_LONG_GRASS);
 }
 

@@ -1202,7 +1202,7 @@ const u16 *const gTilesetAnims_Twinleaf_Pond[] = {
 static void QueueAnimTiles_Twinleaf_Pond(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Twinleaf_Pond);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Twinleaf_Pond[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 14 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Twinleaf_Pond[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 14 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_Twinleaf(u16 timer)
@@ -1234,7 +1234,7 @@ const u16 *const gTilesetAnims_Route203_Pond[] = {
 static void QueueAnimTiles_Route203_Pond(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Route203_Pond);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Route203_Pond[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 14 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Route203_Pond[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 14 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_Route203(u16 timer)
@@ -1266,7 +1266,7 @@ const u16 *const gTilesetAnims_Route204South_Pond[] = {
 static void QueueAnimTiles_Route204South_Pond(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Route204South_Pond);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Route204South_Pond[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 15 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Route204South_Pond[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 15 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_Route204South(u16 timer)
@@ -1306,7 +1306,7 @@ const u16 *const gTilesetAnims_Lake_Water[] = {
 static void QueueAnimTiles_Lake(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Lake_Water);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Lake_Water[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 2 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Lake_Water[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 2 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_Lake(u16 timer)
@@ -1346,7 +1346,7 @@ const u16 *const gTilesetAnims_Coal_Orthogonal[] = {
 static void QueueAnimTiles_Coal_Orthogonal(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Coal_Orthogonal);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Orthogonal[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 8 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Orthogonal[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 8 * TILE_SIZE_4BPP);
 }
 
 const u16 gTilesetAnims_Coal_Slope_Shallow_Frame0[] = INCBIN_U16("data/tilesets/secondary/oreburgh_south/anim/coal_slope_shallow/00.4bpp");
@@ -1372,7 +1372,7 @@ const u16 *const gTilesetAnims_Coal_Slope_Shallow[] = {
 static void QueueAnimTiles_Coal_Slope_Shallow(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Coal_Slope_Shallow);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Slope_Shallow[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(520)), 14 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Slope_Shallow[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY + 8)), 14 * TILE_SIZE_4BPP);
 }
 
 const u16 gTilesetAnims_Coal_Slope_Steep_Frame0[] = INCBIN_U16("data/tilesets/secondary/oreburgh_south/anim/coal_slope_steep/00.4bpp");
@@ -1398,7 +1398,7 @@ const u16 *const gTilesetAnims_Coal_Slope_Steep[] = {
 static void QueueAnimTiles_Coal_Slope_Steep(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Coal_Slope_Steep);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Slope_Steep[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(534)), 10 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Slope_Steep[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY + 22)), 10 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_Oreburgh(u16 timer)
@@ -1444,7 +1444,7 @@ const u16 *const gTilesetAnims_Coal_Vertical[] = {
 static void QueueAnimTiles_Coal_Vertical(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Coal_Vertical);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Vertical[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 4 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Vertical[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 4 * TILE_SIZE_4BPP);
 }
 
 const u16 gTilesetAnims_Coal_Vertical_Dark_Frame0[] = INCBIN_U16("data/tilesets/secondary/oreburgh_mine/anim/coal_vertical_dark/00.4bpp");
@@ -1470,7 +1470,7 @@ const u16 *const gTilesetAnims_Coal_Vertical_Dark[] = {
 static void QueueAnimTiles_Coal_Vertical_Dark(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Coal_Vertical_Dark);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Vertical_Dark[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(516)), 4 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Coal_Vertical_Dark[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY + 4)), 4 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_OreburghMine(u16 timer)
@@ -1537,7 +1537,7 @@ const u16 *const gTilesetAnims_Route205South_Flowers[] = {
 static void QueueAnimTiles_Route205South_Flowers(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Route205South_Flowers);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Route205South_Flowers[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 8 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Route205South_Flowers[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 8 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_Route205South(u16 timer)
@@ -1569,7 +1569,7 @@ const u16 *const gTilesetAnims_FloaromaMeadow_Flowers[] = {
 static void QueueAnimTiles_FloaromaMeadow_Flowers(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_FloaromaMeadow_Flowers);
-    AppendTilesetAnimToBuffer(gTilesetAnims_FloaromaMeadow_Flowers[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 16 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_FloaromaMeadow_Flowers[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 16 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_FloaromaMeadow(u16 timer)
@@ -1609,7 +1609,7 @@ const u16 *const gTilesetAnims_ValleyWindworksIndoor_OrangeBox[] = {
 static void QueueAnimTiles_ValleyWindworksIndoor_OrangeBox(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_ValleyWindworksIndoor_OrangeBox);
-    AppendTilesetAnimToBuffer(gTilesetAnims_ValleyWindworksIndoor_OrangeBox[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 2 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_ValleyWindworksIndoor_OrangeBox[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 2 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_ValleyWindworksIndoor(u16 timer)
@@ -1626,34 +1626,106 @@ void InitTilesetAnim_ValleyWindworksIndoor(void)
     sPrimaryTilesetAnimCallback = TilesetAnim_ValleyWindworksIndoor;
 }
 
-const u16 gTilesetAnims_EternaForest_Flowers_Frame0[] = INCBIN_U16("data/tilesets/primary/indoor_forest/anim/flowers/00.4bpp");
-const u16 gTilesetAnims_EternaForest_Flowers_Frame1[] = INCBIN_U16("data/tilesets/primary/indoor_forest/anim/flowers/01.4bpp");
-const u16 gTilesetAnims_EternaForest_Flowers_Frame2[] = INCBIN_U16("data/tilesets/primary/indoor_forest/anim/flowers/02.4bpp");
-const u16 gTilesetAnims_EternaForest_Flowers_Frame3[] = INCBIN_U16("data/tilesets/primary/indoor_forest/anim/flowers/03.4bpp");
+const u16 gTilesetAnims_IndoorForest_Flowers_Frame0[] = INCBIN_U16("data/tilesets/primary/indoor_forest/anim/flowers/00.4bpp");
+const u16 gTilesetAnims_IndoorForest_Flowers_Frame1[] = INCBIN_U16("data/tilesets/primary/indoor_forest/anim/flowers/01.4bpp");
+const u16 gTilesetAnims_IndoorForest_Flowers_Frame2[] = INCBIN_U16("data/tilesets/primary/indoor_forest/anim/flowers/02.4bpp");
+const u16 gTilesetAnims_IndoorForest_Flowers_Frame3[] = INCBIN_U16("data/tilesets/primary/indoor_forest/anim/flowers/03.4bpp");
 
-const u16 *const gTilesetAnims_EternaForest_Flowers[] = {
-    gTilesetAnims_EternaForest_Flowers_Frame0,
-    gTilesetAnims_EternaForest_Flowers_Frame1,
-    gTilesetAnims_EternaForest_Flowers_Frame2,
-    gTilesetAnims_EternaForest_Flowers_Frame3
+const u16 *const gTilesetAnims_IndoorForest_Flowers[] = {
+    gTilesetAnims_IndoorForest_Flowers_Frame0,
+    gTilesetAnims_IndoorForest_Flowers_Frame1,
+    gTilesetAnims_IndoorForest_Flowers_Frame2,
+    gTilesetAnims_IndoorForest_Flowers_Frame3
 };
 
-static void QueueAnimTiles_EternaForest_Flowers(u16 timer)
+static void QueueAnimTiles_IndoorForest_Flowers(u16 timer)
 {
-    u16 i = timer % ARRAY_COUNT(gTilesetAnims_EternaForest_Flowers);
-    AppendTilesetAnimToBuffer(gTilesetAnims_EternaForest_Flowers[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(1)), 4 * TILE_SIZE_4BPP);
+    u16 i = timer % ARRAY_COUNT(gTilesetAnims_IndoorForest_Flowers);
+    AppendTilesetAnimToBuffer(gTilesetAnims_IndoorForest_Flowers[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(1)), 4 * TILE_SIZE_4BPP);
 }
 
-static void TilesetAnim_EternaForest(u16 timer)
+static void TilesetAnim_IndoorForest(u16 timer)
 {
     if (timer % 32 == 0) {
-        QueueAnimTiles_EternaForest_Flowers(timer / 32);
+        QueueAnimTiles_IndoorForest_Flowers(timer / 32);
     }
 }
 
-void InitTilesetAnim_EternaForest(void)
+void InitTilesetAnim_IndoorForest(void)
 {
     sPrimaryTilesetAnimCounter = 0;
     sPrimaryTilesetAnimCounterMax = 256;
-    sPrimaryTilesetAnimCallback = TilesetAnim_EternaForest;
+    sPrimaryTilesetAnimCallback = TilesetAnim_IndoorForest;
+}
+
+const u16 gTilesetAnims_Route211West_Water_Frame0[] = INCBIN_U16("data/tilesets/secondary/route_211_west/anim/sea_water/00.4bpp");
+const u16 gTilesetAnims_Route211West_Water_Frame1[] = INCBIN_U16("data/tilesets/secondary/route_211_west/anim/sea_water/01.4bpp");
+const u16 gTilesetAnims_Route211West_Water_Frame2[] = INCBIN_U16("data/tilesets/secondary/route_211_west/anim/sea_water/02.4bpp");
+const u16 gTilesetAnims_Route211West_Water_Frame3[] = INCBIN_U16("data/tilesets/secondary/route_211_west/anim/sea_water/03.4bpp");
+const u16 gTilesetAnims_Route211West_Water_Frame4[] = INCBIN_U16("data/tilesets/secondary/route_211_west/anim/sea_water/04.4bpp");
+const u16 gTilesetAnims_Route211West_Water_Frame5[] = INCBIN_U16("data/tilesets/secondary/route_211_west/anim/sea_water/05.4bpp");
+const u16 gTilesetAnims_Route211West_Water_Frame6[] = INCBIN_U16("data/tilesets/secondary/route_211_west/anim/sea_water/06.4bpp");
+const u16 gTilesetAnims_Route211West_Water_Frame7[] = INCBIN_U16("data/tilesets/secondary/route_211_west/anim/sea_water/07.4bpp");
+
+const u16 *const gTilesetAnims_Route211West_Water[] = {
+    gTilesetAnims_Route211West_Water_Frame0,
+    gTilesetAnims_Route211West_Water_Frame1,
+    gTilesetAnims_Route211West_Water_Frame2,
+    gTilesetAnims_Route211West_Water_Frame3,
+    gTilesetAnims_Route211West_Water_Frame4,
+    gTilesetAnims_Route211West_Water_Frame5,
+    gTilesetAnims_Route211West_Water_Frame6,
+    gTilesetAnims_Route211West_Water_Frame7
+};
+
+static void QueueAnimTiles_Route211West(u16 timer)
+{
+    u16 i = timer % ARRAY_COUNT(gTilesetAnims_Route211West_Water);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Route211West_Water[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY_ETERNA)), 2 * TILE_SIZE_4BPP);
+}
+
+static void TilesetAnim_Route211West(u16 timer)
+{
+    if (timer % 16 == 0) {
+        QueueAnimTiles_Route211West(timer / 16);
+    }
+}
+
+void InitTilesetAnim_Route211West(void)
+{
+    sSecondaryTilesetAnimCounter = 0;
+    sSecondaryTilesetAnimCounterMax = 256;
+    sSecondaryTilesetAnimCallback = TilesetAnim_Route211West;
+}
+
+const u16 gTilesetAnims_EternaGym_Fountain_Frame0[] = INCBIN_U16("data/tilesets/secondary/eterna_gym/anim/fountain/00.4bpp");
+const u16 gTilesetAnims_EternaGym_Fountain_Frame1[] = INCBIN_U16("data/tilesets/secondary/eterna_gym/anim/fountain/01.4bpp");
+const u16 gTilesetAnims_EternaGym_Fountain_Frame2[] = INCBIN_U16("data/tilesets/secondary/eterna_gym/anim/fountain/02.4bpp");
+const u16 gTilesetAnims_EternaGym_Fountain_Frame3[] = INCBIN_U16("data/tilesets/secondary/eterna_gym/anim/fountain/03.4bpp");
+
+const u16 *const gTilesetAnims_EternaGym_Fountain[] = {
+    gTilesetAnims_EternaGym_Fountain_Frame0,
+    gTilesetAnims_EternaGym_Fountain_Frame1,
+    gTilesetAnims_EternaGym_Fountain_Frame2,
+    gTilesetAnims_EternaGym_Fountain_Frame3
+};
+
+static void QueueAnimTiles_EternaGym(u16 timer)
+{
+    u16 i = timer % ARRAY_COUNT(gTilesetAnims_EternaGym_Fountain);
+    AppendTilesetAnimToBuffer(gTilesetAnims_EternaGym_Fountain[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY)), 3 * TILE_SIZE_4BPP);
+}
+
+static void TilesetAnim_EternaGym(u16 timer)
+{
+    if (timer % 16 == 0) {
+        QueueAnimTiles_EternaGym(timer / 16);
+    }
+}
+
+void InitTilesetAnim_EternaGym(void)
+{
+    sSecondaryTilesetAnimCounter = 0;
+    sSecondaryTilesetAnimCounterMax = 256;
+    sSecondaryTilesetAnimCallback = TilesetAnim_EternaGym;
 }

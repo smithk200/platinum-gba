@@ -11,6 +11,7 @@
 #include "rotating_gate.h"
 #include "sprite.h"
 #include "text.h"
+#include "constants/layouts.h"
 
 //EWRAM_DATA bool8 gUnusedBikeCameraAheadPanback = FALSE;   //  Old EWRAM variable that was never set to anything other than false
 
@@ -31,6 +32,7 @@ static s32 MapPosToBgTilemapOffset(struct FieldCameraOffset *, s32, s32);
 static void DrawWholeMapViewInternal(int, int, const struct MapLayout *);
 static void DrawMetatileAt(const struct MapLayout *, u16, int, int);
 static void DrawMetatile(s32, const u16 *, u16);
+static void DrawMetatileForOverlay(s32 metatileLayerType, const u16 *tiles, u16 offset, int x, int y);
 static void CameraPanningCB_PanAhead(void);
 
 static struct FieldCameraOffset sFieldCameraOffset;
@@ -38,6 +40,10 @@ static s16 sHorizontalCameraPan;
 static s16 sVerticalCameraPan;
 static bool8 sBikeCameraPanFlag;
 static void (*sFieldCameraPanningCallback)(void);
+
+// In Eterna Forest, shift the BG1 horizontal offset every 32 frames in the same pattern as DPPt
+static u16 sBG1AnimFrame = 0;
+static const s16 sBG1AnimFrameOffsets[] = {-1, 0, 1, 0, -1, 0, 1, 0, -1, 0};
 
 COMMON_DATA struct CameraObject gFieldCamera = {0};
 COMMON_DATA u16 gTotalCameraPixelOffsetY = 0;
@@ -77,7 +83,20 @@ void FieldUpdateBgTilemapScroll(void)
     r5 = sFieldCameraOffset.xPixelOffset + sHorizontalCameraPan;
     r4 = sVerticalCameraPan + sFieldCameraOffset.yPixelOffset + 8;
 
-    SetGpuReg(REG_OFFSET_BG1HOFS, r5);
+    if (gMapHeader.mapLayoutId == LAYOUT_ETERNA_FOREST_1
+     || gMapHeader.mapLayoutId == LAYOUT_ETERNA_FOREST_2)
+    {
+        if (sBG1AnimFrame >= (32 * 10))
+            sBG1AnimFrame = 0;
+
+        s16 offset = sBG1AnimFrameOffsets[((sBG1AnimFrame++ / 32) % 10)];
+        SetGpuReg(REG_OFFSET_BG1HOFS, (u16)((r5 - offset) % 512));
+    }
+    else
+    {
+        SetGpuReg(REG_OFFSET_BG1HOFS, r5);
+    }
+
     SetGpuReg(REG_OFFSET_BG1VOFS, r4);
     SetGpuReg(REG_OFFSET_BG2HOFS, r5);
     SetGpuReg(REG_OFFSET_BG2VOFS, r4);
@@ -239,7 +258,15 @@ static void DrawMetatileAt(const struct MapLayout *mapLayout, u16 offset, int x,
         metatiles = mapLayout->secondaryTileset->metatiles;
         metatileId -= NUM_METATILES_IN_PRIMARY;
     }
-    DrawMetatile(MapGridGetMetatileLayerTypeAt(x, y), metatiles + metatileId * NUM_TILES_PER_METATILE, offset);
+
+    if (gMapHeader.overlay == NULL)
+    {
+        DrawMetatile(MapGridGetMetatileLayerTypeAt(x, y), metatiles + metatileId * NUM_TILES_PER_METATILE, offset);
+    }
+    else
+    {
+        DrawMetatileForOverlay(MapGridGetMetatileLayerTypeAt(x, y), metatiles + metatileId * NUM_TILES_PER_METATILE, offset, (x - MAP_OFFSET), (y - MAP_OFFSET));
+    }
 }
 
 static void DrawMetatile(s32 metatileLayerType, const u16 *tiles, u16 offset)
@@ -289,6 +316,197 @@ static void DrawMetatile(s32 metatileLayerType, const u16 *tiles, u16 offset)
 
     }
     
+    ScheduleBgCopyTilemapToVram(1);
+    ScheduleBgCopyTilemapToVram(2);
+    ScheduleBgCopyTilemapToVram(3);
+}
+
+// Finds the overlay top tile for a position given in map coordinates (0,0 is the map's top left).
+// Positions outside the map belong to a connected map, so use that map's overlay if it has one.
+static bool8 GetOverlayTopTileId(int x, int y, u16 *topTileId)
+{
+    const struct MapLayout *layout = gMapHeader.mapLayout;
+    const struct MapConnection *connection;
+    const struct MapHeader *connectedHeader;
+    const struct MapOverlay *overlay = gMapHeader.overlay;
+    int width = layout->width;
+    int height = layout->height;
+
+    if (x < 0 || y < 0 || x >= width || y >= height)
+    {
+        connection = GetMapConnectionAtPos(x + MAP_OFFSET, y + MAP_OFFSET);
+        if (connection == NULL)
+            return FALSE;
+
+        connectedHeader = GetMapHeaderFromConnection(connection);
+        overlay = connectedHeader->overlay;
+        if (overlay == NULL)
+            return FALSE;
+
+        switch (connection->direction)
+        {
+        case CONNECTION_NORTH:
+            x -= connection->offset;
+            y += connectedHeader->mapLayout->height;
+            break;
+        case CONNECTION_SOUTH:
+            x -= connection->offset;
+            y -= height;
+            break;
+        case CONNECTION_WEST:
+            x += connectedHeader->mapLayout->width;
+            y -= connection->offset;
+            break;
+        case CONNECTION_EAST:
+            x -= width;
+            y -= connection->offset;
+            break;
+        default:
+            return FALSE;
+        }
+
+        width = connectedHeader->mapLayout->width;
+        height = connectedHeader->mapLayout->height;
+        if (x < 0 || y < 0 || x >= width || y >= height)
+            return FALSE;
+    }
+
+    *topTileId = overlay->overlayTiles[y * width + x].topTileId;
+    return TRUE;
+}
+
+static void DrawMetatileForOverlay(s32 metatileLayerType, const u16 *tiles, u16 offset, int x, int y)
+{
+    u16 topTileId = 0;
+    const u16 *ovTiles = NULL;
+
+    switch (metatileLayerType)
+    {
+        case METATILE_LAYER_TYPE_COVERED:  // bottom + middle
+            // Bottom layer (BG3)
+            gOverworldTilemapBuffer_Bg3[offset] = tiles[0];
+            gOverworldTilemapBuffer_Bg3[offset + 1] = tiles[1];
+            gOverworldTilemapBuffer_Bg3[offset + 0x20] = tiles[2];
+            gOverworldTilemapBuffer_Bg3[offset + 0x21] = tiles[3];
+
+            // Middle layer (BG2)
+            gOverworldTilemapBuffer_Bg2[offset] = tiles[4];
+            gOverworldTilemapBuffer_Bg2[offset + 1] = tiles[5];
+            gOverworldTilemapBuffer_Bg2[offset + 0x20] = tiles[6];
+            gOverworldTilemapBuffer_Bg2[offset + 0x21] = tiles[7];
+
+            // Top layer (BG1) — empty
+            gOverworldTilemapBuffer_Bg1[offset] = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 1] = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 0x20] = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 0x21] = 0;
+            break;
+
+        case METATILE_LAYER_TYPE_SPLIT:  // bottom + top
+            // Bottom layer (BG3) = bottom tiles
+            gOverworldTilemapBuffer_Bg3[offset]     = tiles[0];
+            gOverworldTilemapBuffer_Bg3[offset + 1] = tiles[1];
+            gOverworldTilemapBuffer_Bg3[offset + 0x20] = tiles[2];
+            gOverworldTilemapBuffer_Bg3[offset + 0x21] = tiles[3];
+
+            // Middle layer (BG2) = top tiles (shift down)
+            gOverworldTilemapBuffer_Bg2[offset]     = tiles[8];
+            gOverworldTilemapBuffer_Bg2[offset + 1] = tiles[9];
+            gOverworldTilemapBuffer_Bg2[offset + 0x20] = tiles[10];
+            gOverworldTilemapBuffer_Bg2[offset + 0x21] = tiles[11];
+
+            // Top layer (BG1) = empty
+            gOverworldTilemapBuffer_Bg1[offset]     = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 1] = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 0x20] = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 0x21] = 0;
+            break;
+
+        case METATILE_LAYER_TYPE_TOP:  // middle + top
+            // Bottom layer (BG3) = middle tiles (shift down)
+            gOverworldTilemapBuffer_Bg3[offset]     = tiles[4];
+            gOverworldTilemapBuffer_Bg3[offset + 1] = tiles[5];
+            gOverworldTilemapBuffer_Bg3[offset + 0x20] = tiles[6];
+            gOverworldTilemapBuffer_Bg3[offset + 0x21] = tiles[7];
+
+            // Middle layer (BG2) = top tiles (shift down)
+            gOverworldTilemapBuffer_Bg2[offset]     = tiles[8];
+            gOverworldTilemapBuffer_Bg2[offset + 1] = tiles[9];
+            gOverworldTilemapBuffer_Bg2[offset + 0x20] = tiles[10];
+            gOverworldTilemapBuffer_Bg2[offset + 0x21] = tiles[11];
+
+            // Top layer (BG1) = empty
+            gOverworldTilemapBuffer_Bg1[offset]     = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 1] = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 0x20] = 0;
+            gOverworldTilemapBuffer_Bg1[offset + 0x21] = 0;
+            break;
+
+        case 0xFF: // Door
+            gOverworldTilemapBuffer_Bg3[offset] = tiles[0];
+            gOverworldTilemapBuffer_Bg3[offset + 1] = tiles[1];
+            gOverworldTilemapBuffer_Bg3[offset + 0x20] = tiles[2];
+            gOverworldTilemapBuffer_Bg3[offset + 0x21] = tiles[3];
+
+            gOverworldTilemapBuffer_Bg2[offset] = 0;
+            gOverworldTilemapBuffer_Bg2[offset + 1] = 0;
+            gOverworldTilemapBuffer_Bg2[offset + 0x20] = 0;
+            gOverworldTilemapBuffer_Bg2[offset + 0x21] = 0;
+
+            gOverworldTilemapBuffer_Bg1[offset] = tiles[4];
+            gOverworldTilemapBuffer_Bg1[offset + 1] = tiles[5];
+            gOverworldTilemapBuffer_Bg1[offset + 0x20] = tiles[6];
+            gOverworldTilemapBuffer_Bg1[offset + 0x21] = tiles[7];
+
+            break;
+
+        case METATILE_LAYER_TYPE_NORMAL: // bottom + middle + top
+        default:
+            // Bottom layer (BG3)
+            gOverworldTilemapBuffer_Bg3[offset] = tiles[0];
+            gOverworldTilemapBuffer_Bg3[offset + 1] = tiles[1];
+            gOverworldTilemapBuffer_Bg3[offset + 0x20] = tiles[2];
+            gOverworldTilemapBuffer_Bg3[offset + 0x21] = tiles[3];
+
+            // Middle layer (BG2)
+            gOverworldTilemapBuffer_Bg2[offset] = tiles[4];
+            gOverworldTilemapBuffer_Bg2[offset + 1] = tiles[5];
+            gOverworldTilemapBuffer_Bg2[offset + 0x20] = tiles[6];
+            gOverworldTilemapBuffer_Bg2[offset + 0x21] = tiles[7];
+
+            // Top layer (BG1)
+            gOverworldTilemapBuffer_Bg1[offset] = tiles[8];
+            gOverworldTilemapBuffer_Bg1[offset + 1] = tiles[9];
+            gOverworldTilemapBuffer_Bg1[offset + 0x20] = tiles[10];
+            gOverworldTilemapBuffer_Bg1[offset + 0x21] = tiles[11];
+            break;
+    }
+
+    // No overlay tile here (e.g. the border or a map without an overlay), keep the metatile's own top layer
+    if (!GetOverlayTopTileId(x, y, &topTileId))
+    {
+        ScheduleBgCopyTilemapToVram(1);
+        ScheduleBgCopyTilemapToVram(2);
+        ScheduleBgCopyTilemapToVram(3);
+        return;
+    }
+
+    if (topTileId < NUM_METATILES_IN_PRIMARY)
+    {
+        ovTiles = gMapHeader.mapLayout->primaryTileset->metatiles + topTileId * NUM_TILES_PER_METATILE;
+    }
+    else
+    {
+        topTileId -= NUM_METATILES_IN_PRIMARY;
+        ovTiles = gMapHeader.mapLayout->secondaryTileset->metatiles + topTileId * NUM_TILES_PER_METATILE;
+    }
+
+    // Replace only the *top layer* (indices 8–11 → BG1)
+    gOverworldTilemapBuffer_Bg1[offset]         = ovTiles[8];
+    gOverworldTilemapBuffer_Bg1[offset + 1]     = ovTiles[9];
+    gOverworldTilemapBuffer_Bg1[offset + 0x20]  = ovTiles[10];
+    gOverworldTilemapBuffer_Bg1[offset + 0x21]  = ovTiles[11];
+
     ScheduleBgCopyTilemapToVram(1);
     ScheduleBgCopyTilemapToVram(2);
     ScheduleBgCopyTilemapToVram(3);
